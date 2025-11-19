@@ -14,6 +14,7 @@ model_id = st.sidebar.selectbox("Select LLM Model", ["anthropic.claude-3-haiku-2
 kb_id = st.sidebar.text_input("Knowledge Base ID", "your-knowledge-base-id")
 temperature = st.sidebar.select_slider("Temperature", [i/10 for i in range(0,11)],1)
 top_p = st.sidebar.select_slider("Top_P", [i/1000 for i in range(0,1001)], 1)
+sources = []
 
 # Initialize chat history
 if "messages" not in st.session_state:
@@ -33,12 +34,22 @@ if prompt := st.chat_input("What would you like to know?"):
     if valid_prompt(prompt, model_id):
         # Query Knowledge Base
         kb_results = query_knowledge_base(prompt, kb_id)
+
+        # print(kb_results)
         
         # Prepare context from Knowledge Base results
         context = "\n".join([result['content']['text'] for result in kb_results])
+        sources = list(set([result['location']['s3Location']['uri'] for result in kb_results]))
+
+        # print("Sources:", sources)
+
+        # print("Context:", context)
         
         # Generate response using LLM
         full_prompt = f"Context: {context}\n\nUser: {prompt}\n\n"
+
+        # print("Full Prompt:", full_prompt)
+
         response = generate_response(full_prompt, model_id, temperature, top_p)
     else:
         response = "I'm unable to answer this, please try again"
@@ -46,4 +57,8 @@ if prompt := st.chat_input("What would you like to know?"):
     # Display assistant response
     with st.chat_message("assistant"):
         st.markdown(response)
+        if sources:
+            st.markdown("Sources:")
+            for source in sources:
+                st.markdown(f"- {source}")
     st.session_state.messages.append({"role": "assistant", "content": response})

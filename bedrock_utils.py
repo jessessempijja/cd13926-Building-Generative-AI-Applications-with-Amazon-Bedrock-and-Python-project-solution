@@ -5,13 +5,13 @@ import json
 # Initialize AWS Bedrock client
 bedrock = boto3.client(
     service_name='bedrock-runtime',
-    region_name='us-west-2'  # Replace with your AWS region
+    region_name='us-east-1'
 )
 
 # Initialize Bedrock Knowledge Base client
 bedrock_kb = boto3.client(
     service_name='bedrock-agent-runtime',
-    region_name='us-west-2'  # Replace with your AWS region
+    region_name='us-east-1'
 )
 
 def valid_prompt(prompt, model_id):
@@ -55,8 +55,8 @@ def valid_prompt(prompt, model_id):
             })
         )
         category = json.loads(response['body'].read())['content'][0]["text"]
-        print(category)
-        
+        print(f"Category for {prompt}: {category}")
+
         if category.lower().strip() == "category e":
             return True
         else:
@@ -78,6 +78,7 @@ def query_knowledge_base(query, kb_id):
                 }
             }
         )
+        # print("Knowledge Base Results:", response)
         return response['retrievalResults']
     except ClientError as e:
         print(f"Error querying Knowledge Base: {e}")
